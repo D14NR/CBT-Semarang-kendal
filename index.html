@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>CBTKU</title>
     <meta charset="UTF-8">
-    
-    <!-- Favicon untuk icon education -->
-    <link rel="icon" href="https://raw.githubusercontent.com/D14NR/ICON/refs/heads/main/removebg-preview.png" type="image/x-icon">
-    
-    <!-- Viewport untuk mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CBTKU - Computer Based Test</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="https://raw.githubusercontent.com/D14NR/ICON/refs/heads/main/removebg-preview.png" type="image/x-icon">
     
     <!-- Untuk iOS Safari -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,115 +15,537 @@
     <!-- Untuk Android -->
     <meta name="mobile-web-app-capable" content="yes">
     
+    <!-- Font Google untuk tampilan profesional -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        /* Reset dan base styling */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Hapus highlight biru di mobile */
+            -webkit-tap-highlight-color: transparent;
         }
         
         body, html {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            position: fixed; /* Penting untuk mobile */
-            touch-action: manipulation; /* Mencegah zoom dengan double-tap */
+            position: fixed;
+            touch-action: manipulation;
+            font-family: 'Poppins', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
         }
         
+        /* Header Profesional */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: #d50000; /* Merah lebih gelap */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            box-shadow: 0 4px 12px rgba(213, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            height: 45px;
+            width: 45px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d50000;
+            font-size: 22px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .brand-tagline {
+            font-size: 12px;
+            font-weight: 300;
+            opacity: 0.9;
+            letter-spacing: 0.3px;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .fullscreen-btn {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .fullscreen-btn:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+        
+        /* Kontainer utama */
+        .main-container {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 70px);
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+        }
+        
+        /* Iframe styling */
         iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Loading screen yang lebih profesional */
+        .loading-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            border: none;
-            /* Untuk beberapa browser mobile */
-            -webkit-overflow-scrolling: touch;
+            background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
         }
         
-        /* Indikator loading untuk mobile */
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            color: #333;
-            z-index: 999;
-            background: rgba(255,255,255,0.9);
-            padding: 20px;
-            border-radius: 10px;
+        .loading-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(213, 0, 0, 0.1);
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 5px solid #d50000;
         }
         
-        /* Animasi loading */
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
+        .loading-logo {
+            margin-bottom: 25px;
+        }
+        
+        .loading-logo-icon {
+            height: 80px;
+            width: 80px;
+            background: linear-gradient(135deg, #d50000 0%, #b71c1c 100%);
             border-radius: 50%;
-            border-top: 4px solid #007bff;
-            width: 40px;
-            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 36px;
+            box-shadow: 0 6px 20px rgba(213, 0, 0, 0.2);
+        }
+        
+        .loading-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .loading-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+        
+        /* Spinner modern */
+        .spinner {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 25px;
+        }
+        
+        .spinner-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #d50000;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+        }
+        
+        .spinner-inner:nth-child(2) {
+            border-top-color: #ff5252;
+            animation-delay: 0.1s;
+        }
+        
+        .spinner-inner:nth-child(3) {
+            border-top-color: #ff8a80;
+            animation-delay: 0.2s;
         }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: #f0f0f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #d50000 0%, #ff5252 100%);
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Footer untuk informasi tambahan */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+            z-index: 100;
+        }
+        
+        .footer-info {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .footer-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .footer-info i {
+            color: #d50000;
+        }
+        
+        .footer-timer {
+            font-weight: 600;
+            color: #d50000;
+            background-color: rgba(213, 0, 0, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        
+        /* Notifikasi untuk mobile */
+        .mobile-notice {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background-color: #fff3e0;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #e65100;
+            border-bottom: 1px solid #ffcc80;
+            display: none;
+            z-index: 999;
+        }
+        
+        .mobile-notice i {
+            margin-right: 8px;
+        }
+        
+        /* Responsif untuk berbagai ukuran layar */
+        @media (max-width: 768px) {
+            .header {
+                height: 60px;
+                padding: 0 15px;
+            }
+            
+            .logo {
+                height: 40px;
+                width: 40px;
+                font-size: 20px;
+            }
+            
+            .brand-name {
+                font-size: 18px;
+            }
+            
+            .brand-tagline {
+                font-size: 10px;
+            }
+            
+            .main-container {
+                top: 60px;
+                height: calc(100% - 60px);
+            }
+            
+            .footer {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px 15px;
+                text-align: center;
+            }
+            
+            .footer-info {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .loading-card {
+                padding: 30px 20px;
+                width: 85%;
+            }
+            
+            .mobile-notice {
+                display: block;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .brand-text {
+                max-width: 150px;
+            }
+            
+            .brand-name {
+                font-size: 16px;
+            }
+            
+            .fullscreen-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            .footer-info {
+                font-size: 11px;
+            }
+        }
+        
+        /* Animasi fade in */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        body {
+            animation: fadeIn 0.5s ease;
+        }
     </style>
 </head>
 <body>
-    <!-- Indikator loading -->
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-        Memuat konten CBT...
+    <!-- Header Profesional -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="brand-text">
+                <div class="brand-name">CBTKU</div>
+                <div class="brand-tagline">Computer Based Test Platform</div>
+            </div>
+        </div>
+        
+        <div class="header-controls">
+            <button class="fullscreen-btn" id="fullscreenBtn" title="Layar Penuh">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+    </header>
+    
+    <!-- Notifikasi untuk mobile -->
+    <div class="mobile-notice">
+        <i class="fas fa-mobile-alt"></i> Mode landscape direkomendasikan untuk pengalaman terbaik
     </div>
     
-    <iframe 
-        id="contentFrame"
-        src="https://script.google.com/a/~/macros/s/AKfycbzgjtR4oXFBagzi9Kt5BHww2ZHKwtj3RlAD1A_q51XH6lO4OyUq0Jkpenhz-XJCPo8_3w/exec"
-        allowfullscreen
-        allow="autoplay; encrypted-media; picture-in-picture"
-        loading="eager">
-    </iframe>
+    <!-- Loading screen -->
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-card">
+            <div class="loading-logo">
+                <div class="loading-logo-icon">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+            </div>
+            
+            <h2 class="loading-title">Membuka CBTKU</h2>
+            <p class="loading-subtitle">Mempersiapkan lingkungan ujian yang aman dan profesional</p>
+            
+            <div class="spinner">
+                <div class="spinner-inner"></div>
+                <div class="spinner-inner"></div>
+                <div class="spinner-inner"></div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="loadingProgress"></div>
+            </div>
+            
+            <p id="loadingStatus" style="font-size: 13px; color: #888; margin-top: 15px;">
+                Memuat konten ujian...
+            </p>
+        </div>
+    </div>
+    
+    <!-- Kontainer utama untuk iframe -->
+    <div class="main-container">
+        <iframe 
+            id="contentFrame"
+            src="https://script.google.com/a/~/macros/s/AKfycbzgjtR4oXFBagzi9Kt5BHww2ZHKwtj3RlAD1A_q51XH6lO4OyUq0Jkpenhz-XJCPo8_3w/exec"
+            allowfullscreen
+            allow="autoplay; encrypted-media; picture-in-picture"
+            loading="eager">
+        </iframe>
+    </div>
+    
+    <!-- Footer informasi -->
+    <footer class="footer">
+        <div class="footer-info">
+            <span><i class="fas fa-shield-alt"></i> Ujian Aman & Terkontrol</span>
+            <span><i class="fas fa-clock"></i> Waktu Terpantau</span>
+            <span><i class="fas fa-user-check"></i> Autentikasi Peserta</span>
+        </div>
+        <div class="footer-timer" id="timer">
+            <i class="fas fa-clock"></i> <span id="currentTime">--:--:--</span>
+        </div>
+    </footer>
     
     <script>
+        // Inisialisasi variabel
+        const loadingContainer = document.getElementById('loadingContainer');
+        const contentFrame = document.getElementById('contentFrame');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const timerElement = document.getElementById('currentTime');
+        
+        // Fungsi untuk update waktu real-time
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            timerElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Update waktu setiap detik
+        setInterval(updateTime, 1000);
+        updateTime(); // Jalankan segera
+        
+        // Simulasi progres loading
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) {
+                progress = 90; // Hentikan di 90% sampai iframe selesai dimuat
+                clearInterval(progressInterval);
+            }
+            loadingProgress.style.width = `${progress}%`;
+            
+            // Update status berdasarkan progres
+            if (progress < 30) {
+                loadingStatus.textContent = "Memuat modul ujian...";
+            } else if (progress < 60) {
+                loadingStatus.textContent = "Menyiapkan antarmuka...";
+            } else if (progress < 90) {
+                loadingStatus.textContent = "Hampir selesai...";
+            }
+        }, 300);
+        
         // Sembunyikan loading setelah iframe dimuat
-        document.getElementById('contentFrame').onload = function() {
-            document.getElementById('loading').style.display = 'none';
+        contentFrame.onload = function() {
+            loadingStatus.textContent = "Mengalihkan ke halaman ujian...";
+            loadingProgress.style.width = '100%';
+            
+            // Tunggu sebentar sebelum menyembunyikan loading
+            setTimeout(() => {
+                loadingContainer.style.opacity = '0';
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                }, 500);
+            }, 800);
         };
         
-        // Fallback: sembunyikan loading setelah 5 detik
+        // Fallback: sembunyikan loading setelah 7 detik
         setTimeout(function() {
-            document.getElementById('loading').style.display = 'none';
-        }, 5000);
-        
-        // Fungsi untuk layar penuh masih tersedia jika diperlukan
-        function toggleFullscreen() {
-            const iframe = document.getElementById('contentFrame');
-            
-            // Periksa apakah sudah di layar penuh
-            if (document.fullscreenElement || 
-                document.webkitFullscreenElement ||  // Safari
-                document.mozFullScreenElement ||     // Firefox
-                document.msFullscreenElement) {      // IE/Edge
+            if (loadingContainer.style.display !== 'none') {
+                loadingProgress.style.width = '100%';
+                loadingStatus.textContent = "Menggunakan cache lokal...";
                 
-                // Keluar dari layar penuh
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-            } else {
+                setTimeout(() => {
+                    loadingContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingContainer.style.display = 'none';
+                    }, 500);
+                }, 1000);
+            }
+        }, 7000);
+        
+        // Fungsi untuk toggle layar penuh
+        function toggleFullscreen() {
+            if (!document.fullscreenElement &&
+                !document.webkitFullscreenElement &&
+                !document.mozFullScreenElement &&
+                !document.msFullscreenElement) {
                 // Masuk ke layar penuh
-                const element = iframe;
+                const element = document.documentElement;
                 
                 if (element.requestFullscreen) {
                     element.requestFullscreen();
@@ -136,15 +556,47 @@
                 } else if (element.msRequestFullscreen) {
                     element.msRequestFullscreen();
                 }
+                
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                fullscreenBtn.title = "Keluar dari Layar Penuh";
+            } else {
+                // Keluar dari layar penuh
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.title = "Layar Penuh";
             }
         }
         
-        // Mencegah perilaku default di mobile
-        document.addEventListener('touchmove', function(e) {
-            if (e.scale !== 1) {
-                e.preventDefault(); // Mencegah zoom
+        // Event listener untuk tombol layar penuh
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        
+        // Deteksi perubahan status layar penuh
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+        document.addEventListener('MSFullscreenChange', updateFullscreenButton);
+        
+        function updateFullscreenButton() {
+            if (document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement) {
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                fullscreenBtn.title = "Keluar dari Layar Penuh";
+            } else {
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.title = "Layar Penuh";
             }
-        }, { passive: false });
+        }
         
         // Deteksi perangkat mobile
         function isMobile() {
@@ -153,29 +605,43 @@
         
         // Penyesuaian untuk mobile
         if (isMobile()) {
-            // Tambahkan kelas mobile ke body
-            document.body.classList.add('mobile-device');
+            // Tambahkan event untuk masuk ke layar penuh secara otomatis di mobile
+            setTimeout(() => {
+                // Tampilkan notifikasi layar penuh
+                const confirmFullscreen = confirm("Untuk pengalaman ujian terbaik, aktifkan mode layar penuh?");
+                if (confirmFullscreen) {
+                    toggleFullscreen();
+                }
+            }, 2000);
             
-            // Pesan untuk orientasi landscape (opsional)
+            // Deteksi orientasi layar
             window.addEventListener("orientationchange", function() {
                 if (window.orientation === 90 || window.orientation === -90) {
-                    console.log("Mode landscape - cocok untuk tampilan CBT");
+                    console.log("Mode landscape diaktifkan");
                 } else {
-                    console.log("Mode portrait");
+                    console.log("Mode portrait diaktifkan");
                 }
             });
-            
-            // Tambahkan event untuk masuk ke layar penuh secara otomatis di mobile
-            // Hapus komentar di bawah jika ingin layar penuh otomatis
-            // setTimeout(toggleFullscreen, 1000);
         }
         
-        // Tambahkan keyboard shortcut F11 untuk layar penuh (opsional)
+        // Mencegah zoom dengan pinch di mobile
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Shortcut keyboard F11 untuk layar penuh
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F11') {
                 e.preventDefault();
                 toggleFullscreen();
             }
+        });
+        
+        // Inisialisasi tambahan saat halaman dimuat
+        window.addEventListener('load', function() {
+            console.log("CBTKU Platform siap digunakan");
         });
     </script>
 </body>
