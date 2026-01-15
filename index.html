@@ -3084,7 +3084,7 @@ function setupMapelScroll() {
           
           answers = {};
           Object.keys(jawabanData).forEach(key => { 
-            if (key.startsWith('No.Soal')) {
+            if (key.startsWith('Jwb')) {
               const noSoal = key.substring(3);
               answers[noSoal] = jawabanData[key];
             }
@@ -3320,7 +3320,7 @@ function setupMapelScroll() {
       answers[questionNo] = value;
       
       const updateData = {
-        ['No.Soal' + questionNo]: value,
+        ['Jwb' + questionNo]: value,
         Jenis_Tes: agenda.Jenis_Tes || "Ujian Umum",
         Last_Update: new Date().toISOString()
       };
@@ -3670,7 +3670,7 @@ function setupMapelScroll() {
               
               let jawabanCount = 0;
               Object.keys(jawabanData).forEach(key => { 
-                if (key.startsWith('No.Soal')) jawabanCount++; 
+                if (key.startsWith('Jwb')) jawabanCount++; 
               });
               
               html += `
@@ -3779,7 +3779,7 @@ function setupMapelScroll() {
       let kosong = 0;
       
       currentHistoryQuestions.forEach(question => { 
-        jawabanData['No.Soal' + question.No_Soal] ? dijawab++ : kosong++; 
+        jawabanData['Jwb' + question.No_Soal] ? dijawab++ : kosong++; 
       });
       
       const persenDijawab = totalSoal > 0 ? Math.round((dijawab / totalSoal) * 100) : 0;
@@ -3830,7 +3830,7 @@ function setupMapelScroll() {
       `;
       
       currentHistoryQuestions.forEach((question, index) => {
-        const jawaban = jawabanData['No.Soal' + question.No_Soal] || '(Tidak dijawab)';
+        const jawaban = jawabanData['Jwb' + question.No_Soal] || '(Tidak dijawab)';
         const isDijawab = jawaban !== '(Tidak dijawab)';
         
         html += `
@@ -3927,7 +3927,7 @@ function setupMapelScroll() {
         let soalHTML = '';
         
         currentHistoryQuestions.forEach((question, idx) => {
-          const jawaban = jawabanData['No.Soal' + question.No_Soal] || '(Tidak dijawab)';
+          const jawaban = jawabanData['Jwb' + question.No_Soal] || '(Tidak dijawab)';
           const isDijawab = jawaban !== '(Tidak dijawab)';
           
           soalHTML += `
