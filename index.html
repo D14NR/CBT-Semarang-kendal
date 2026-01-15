@@ -2126,7 +2126,7 @@ function updateMonitoring(status) {
   db.ref('monitoring_pengerjaan/' + key).update(monitoringData);
 }
 
-/* FUNGSI BARU: Simpan Jawaban Per Mapel dengan Format Jwb1-JwbN */
+/* FUNGSI BARU: Simpan Jawaban Per Mapel dengan Format Jwb(no.soal) */
 function saveJawabanPerMapel() {
   if (!user || !agenda || !mapel || !questions.length) {
     console.log('Data tidak lengkap untuk menyimpan jawaban per mapel');
@@ -2158,14 +2158,10 @@ function saveJawabanPerMapel() {
   let dijawab = 0;
   let kosong = 0;
   
-  // Tambahkan jawaban Jwb1, Jwb2, dst berdasarkan urutan soal
-  questions.forEach((question, index) => {
-    const jawabanKey = `Jwb${index + 1}`;
+  // Tambahkan jawaban menggunakan nomor soal asli (bukan index array)
+  questions.forEach((question) => {
+    const jawabanKey = `Jwb${question.No_Soal}`; // Menggunakan No_Soal dari database
     jawabanData[jawabanKey] = answers[question.No_Soal] || '(Tidak dijawab)';
-    
-    // Juga simpan dengan nomor soal asli untuk referensi
-    const jawabanKeyOriginal = `Jwb_${question.No_Soal}`;
-    jawabanData[jawabanKeyOriginal] = answers[question.No_Soal] || '(Tidak dijawab)';
     
     // Hitung statistik
     if (answers[question.No_Soal] && answers[question.No_Soal] !== '(Tidak dijawab)') {
@@ -2182,7 +2178,7 @@ function saveJawabanPerMapel() {
   // Simpan ke database
   db.ref(`jawaban_permapel/${rowKey}`).update(jawabanData)
     .then(() => {
-      console.log('Jawaban per mapel berhasil disimpan dengan format Jwb1-JwbN');
+      console.log('Jawaban per mapel berhasil disimpan dengan format Jwb(no.soal)');
     })
     .catch(err => {
       console.error('Error menyimpan jawaban per mapel:', err);
@@ -3391,7 +3387,7 @@ function saveSingleAnswer(questionNo, value) {
   answers[questionNo] = value;
   
   const updateData = {
-    ['Jwb' + questionNo]: value,
+    ['Jwb' + questionNo]: value, // Menggunakan 'Jwb' + questionNo (nomor soal asli)
     Jenis_Tes: agenda.Jenis_Tes || "Ujian Umum",
     Last_Update: new Date().toISOString()
   };
@@ -3399,7 +3395,7 @@ function saveSingleAnswer(questionNo, value) {
   // Simpan ke tabel utama
   db.ref('jawaban_siswa/' + user.sessId).update(updateData)
     .then(() => {
-      // Juga simpan ke tabel per mapel dengan format Jwb1-JwbN
+      // Juga simpan ke tabel per mapel dengan format Jwb(no.soal)
       saveJawabanPerMapel();
       
       setTimeout(() => { 
@@ -3855,7 +3851,7 @@ function viewDetailJawabanPerMapel(permapelKey) {
     });
 }
 
-/* FUNGSI BARU: Render Detail Jawaban Per Mapel dengan Format Jwb1-JwbN */
+/* FUNGSI BARU: Render Detail Jawaban Per Mapel dengan Format Jwb(no.soal) */
 function renderDetailJawabanPerMapelContent(jawabanData) {
   const content = document.getElementById('detail-content');
   const title = document.getElementById('detail-title');
@@ -3864,17 +3860,26 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
   
   title.innerText = `Detail Jawaban - ${jawabanData.Mata_Pelajaran}`;
   
-  // Ekstrak semua jawaban Jwb1-JwbN
+  // Ekstrak semua jawaban Jwb(no.soal)
   let jawabanList = [];
-  for (let i = 1; i <= jawabanData.Jumlah_Soal; i++) {
-    const jawabanKey = `Jwb${i}`;
-    if (jawabanData[jawabanKey] !== undefined) {
-      jawabanList.push({
-        no: i,
-        jawaban: jawabanData[jawabanKey]
-      });
+  
+  // Cari semua kunci yang dimulai dengan 'Jwb' dan ambil nomor soalnya
+  Object.keys(jawabanData).forEach(key => {
+    if (key.startsWith('Jwb') && key !== 'Jwb_') { // Filter hanya kunci Jwb diikuti angka
+      const noSoal = key.replace('Jwb', '');
+      
+      // Pastikan ini adalah angka (bukan properti lain yang kebetulan dimulai dengan Jwb)
+      if (!isNaN(noSoal) && noSoal !== '') {
+        jawabanList.push({
+          no: parseInt(noSoal),
+          jawaban: jawabanData[key]
+        });
+      }
     }
-  }
+  });
+  
+  // Urutkan berdasarkan nomor soal
+  jawabanList.sort((a, b) => a.no - b.no);
   
   let html = `
     <div style="background:var(--primary-light); padding:15px; border-radius:8px; margin-bottom:20px;">
@@ -3932,7 +3937,7 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
     <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:20px;">
   `;
   
-  // Tampilkan navigasi nomor soal
+  // Tampilkan navigasi nomor soal berdasarkan nomor soal asli
   jawabanList.forEach(item => {
     const isDijawab = item.jawaban && item.jawaban !== '(Tidak dijawab)';
     html += `
@@ -3953,9 +3958,9 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
   
   html += `</div>`;
   
-  // Tampilkan daftar jawaban lengkap dengan format Jwb1-JwbN
+  // Tampilkan daftar jawaban lengkap dengan format Jwb(no.soal)
   html += `
-    <div style="font-weight:700; margin-bottom:15px; color:var(--text-main); font-size:16px;">DETAIL JAWABAN (Format: Jwb1-Jwb${jawabanData.Jumlah_Soal}):</div>
+    <div style="font-weight:700; margin-bottom:15px; color:var(--text-main); font-size:16px;">DETAIL JAWABAN (Format: Jwb${jawabanList[0]?.no || 1}-Jwb${jawabanList[jawabanList.length-1]?.no || jawabanList.length}):</div>
     <div style="background:#f8fafc; padding:15px; border-radius:8px;" id="detail-jawaban-list">
   `;
   
