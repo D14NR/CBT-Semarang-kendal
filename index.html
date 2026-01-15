@@ -1423,6 +1423,79 @@
         max-height: 600px; /* Sangat besar untuk layar besar */
       }
     }
+    .scroll-buttons {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+
+.scroll-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-base);
+}
+
+.scroll-btn:hover {
+  background: var(--primary-dark);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-xl);
+}
+
+.scroll-btn:active {
+  transform: scale(0.95);
+}
+
+/* Container untuk mapel dengan scroll */
+.mapel-scroll-container {
+  height: calc(100vh - 64px); /* Tinggi viewport dikurangi top bar */
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Responsive untuk scroll buttons */
+@media (max-width: 768px) {
+  .scroll-buttons {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .scroll-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scroll-buttons {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .scroll-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .mapel-scroll-container {
+    height: calc(100vh - 56px); /* Untuk mobile */
+  }
+}
 
   </style>
 </head>
@@ -1654,13 +1727,23 @@
 
   <!-- 3. MAPEL LIST -->
   <div id="view-mapel" class="app-container hidden">
-    <div class="top-bar">
-      <button onclick="goDashboard()" style="border:none; background:none; font-weight:700;">&laquo; Kembali</button>
-      <div style="font-weight:700;">Daftar Mapel</div>
-      <div style="width:50px;"></div>
-    </div>
-    <div style="padding:20px;" id="mapel-container"></div>
+  <div class="top-bar">
+    <button onclick="goDashboard()" style="border:none; background:none; font-weight:700;">&laquo; Kembali</button>
+    <div style="font-weight:700;">Daftar Mapel</div>
+    <div style="width:50px;"></div>
   </div>
+  
+  <!-- Container dengan scroll -->
+  <div class="mapel-scroll-container" id="mapel-scroll-container">
+    <div id="mapel-container"></div>
+  </div>
+  
+  <!-- Tombol scroll -->
+  <div class="scroll-buttons" id="scroll-buttons">
+    <button class="scroll-btn" onclick="scrollToTop()" id="btn-scroll-top" style="display:none;">↑</button>
+    <button class="scroll-btn" onclick="scrollToBottom()" id="btn-scroll-bottom">↓</button>
+  </div>
+</div>
 
   <!-- 4. EXAM INTERFACE -->
   <div id="view-exam" class="app-container hidden">
@@ -2773,6 +2856,69 @@
       }, 500);
     }
 
+    /* SCROLL FUNCTIONS */
+function scrollToTop() {
+  const container = document.getElementById('mapel-scroll-container');
+  if (container) {
+    container.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    updateScrollButtons();
+  }
+}
+
+function scrollToBottom() {
+  const container = document.getElementById('mapel-scroll-container');
+  if (container) {
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    });
+    updateScrollButtons();
+  }
+}
+
+function updateScrollButtons() {
+  const container = document.getElementById('mapel-scroll-container');
+  const btnTop = document.getElementById('btn-scroll-top');
+  const btnBottom = document.getElementById('btn-scroll-bottom');
+  
+  if (!container || !btnTop || !btnBottom) return;
+  
+  // Tampilkan tombol scroll ke atas jika sudah scroll ke bawah
+  const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
+  const isAtTop = container.scrollTop <= 10;
+  
+  btnTop.style.display = container.scrollTop > 100 ? 'flex' : 'none';
+  btnBottom.style.display = !isAtBottom ? 'flex' : 'none';
+  
+  // Jika di paling bawah, sembunyikan tombol bawah
+  if (isAtBottom) {
+    btnBottom.style.display = 'none';
+  }
+  
+  // Jika di paling atas, sembunyikan tombol atas
+  if (isAtTop) {
+    btnTop.style.display = 'none';
+  }
+}
+
+function setupMapelScroll() {
+  const container = document.getElementById('mapel-scroll-container');
+  if (container) {
+    // Tambahkan event listener untuk scroll
+    container.addEventListener('scroll', updateScrollButtons);
+    
+    // Update tombol saat pertama kali dimuat
+    setTimeout(updateScrollButtons, 300);
+    
+    // Update tombol saat konten berubah
+    const observer = new MutationObserver(updateScrollButtons);
+    observer.observe(container, { childList: true, subtree: true });
+  }
+}
+
     /* MAPEL LIST */
     function goMapel() {
       goView('view-mapel');
@@ -2781,6 +2927,8 @@
       if (!mapelContainer) return;
       
       mapelContainer.innerHTML = 'Loading...';
+
+      setTimeout(setupMapelScroll, 100);
       
       if (!user || !agenda) {
         mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Data tidak ditemukan</div>';
@@ -3879,6 +4027,9 @@
       if (nextButton) {
         nextButton.onclick = () => navigateQuestion(1);
       }
+
+       window.scrollToTop = scrollToTop;
+  window.scrollToBottom = scrollToBottom;
     });
   </script>
   
