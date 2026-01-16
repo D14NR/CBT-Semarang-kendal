@@ -1542,7 +1542,7 @@
     </div>
   </div>
 
-  <!-- MODAL: PERNYATAAN & TATA TERTIB -->
+  <!-- MODAL: PERNYATAAN & TATA TERTIB (Start Exam) -->
   <div id="modal-start-rules" class="modal-backdrop hidden" style="z-index: 9500;">
     <div class="modal-content" style="max-width: 500px;">
       <div class="modal-title">TATA TERTIB UJIAN</div>
@@ -1586,7 +1586,9 @@
       </div>
       
       <div style="flex:1; overflow-y:auto; padding-right:5px;">
-        <div id="detail-content"></div>
+        <div id="detail-content">
+          <!-- Detail jawaban akan dimuat di sini -->
+        </div>
       </div>
       
       <div class="modal-actions" style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border); flex-shrink:0;">
@@ -1734,21 +1736,23 @@
 
   <!-- 3. MAPEL LIST -->
   <div id="view-mapel" class="app-container hidden">
-    <div class="top-bar">
-      <button onclick="goDashboard()" style="border:none; background:none; font-weight:700;">&laquo; Kembali</button>
-      <div style="font-weight:700;">Daftar Mapel</div>
-      <div style="width:50px;"></div>
-    </div>
-    
-    <div class="mapel-scroll-container" id="mapel-scroll-container">
-      <div id="mapel-container"></div>
-    </div>
-    
-    <div class="scroll-buttons" id="scroll-buttons">
-      <button class="scroll-btn" onclick="scrollToTop()" id="btn-scroll-top" style="display:none;">↑</button>
-      <button class="scroll-btn" onclick="scrollToBottom()" id="btn-scroll-bottom">↓</button>
-    </div>
+  <div class="top-bar">
+    <button onclick="goDashboard()" style="border:none; background:none; font-weight:700;">&laquo; Kembali</button>
+    <div style="font-weight:700;">Daftar Mapel</div>
+    <div style="width:50px;"></div>
   </div>
+  
+  <!-- Container dengan scroll -->
+  <div class="mapel-scroll-container" id="mapel-scroll-container">
+    <div id="mapel-container"></div>
+  </div>
+  
+  <!-- Tombol scroll -->
+  <div class="scroll-buttons" id="scroll-buttons">
+    <button class="scroll-btn" onclick="scrollToTop()" id="btn-scroll-top" style="display:none;">↑</button>
+    <button class="scroll-btn" onclick="scrollToBottom()" id="btn-scroll-bottom">↓</button>
+  </div>
+</div>
 
   <!-- 4. EXAM INTERFACE -->
   <div id="view-exam" class="app-container hidden">
@@ -1764,7 +1768,9 @@
     <div class="exam-wrapper">
       <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
       <div class="exam-main">
-        <div class="question-area" id="q_area"></div>
+        <div class="question-area" id="q_area">
+          <!-- Area pertanyaan akan dimuat di sini -->
+        </div>
         <div class="nav-bottom">
           <button class="btn-outline btn-auto" id="btn-prev" onclick="nav(-1)">&larr;</button>
           <label class="checkbox-label">
@@ -1776,7 +1782,9 @@
       
       <div class="exam-sidebar" id="sidebar">
         <div style="padding:15px; border-bottom:1px solid var(--border); font-weight:700;">Nomor Soal</div>
-        <div class="nav-grid" id="nav_grid"></div>
+        <div class="nav-grid" id="nav_grid">
+          <!-- Navigasi soal akan dimuat di sini -->
+        </div>
         <div style="padding:15px; margin-top:auto; border-top:1px solid var(--border);">
           <div style="font-size:11px; display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
             <div style="display:flex; align-items:center; gap:4px;">
@@ -1798,7 +1806,7 @@
     </div>
   </div>
 
-  <!-- 5. VIEW HISTORY -->
+  <!-- 5. VIEW HISTORY (JAWABAN TERKIRIM) -->
   <div id="view-history" class="app-container hidden">
     <div class="top-bar">
       <button onclick="goDashboard()" style="border:none; background:none; font-weight:700;">&laquo; Dashboard</button>
@@ -1807,7 +1815,9 @@
     </div>
     
     <div style="padding:20px;">
-      <div id="history-container"></div>
+      <div id="history-container">
+        <!-- Daftar mapel dengan jawaban akan dimuat di sini -->
+      </div>
     </div>
   </div>
 
@@ -1853,11 +1863,69 @@
       </div>
     </div>
   </div>
+  
 
+  <!-- MODAL ZOOM GAMBAR (Dynamic akan ditambahkan oleh JavaScript) -->
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
-VM113:7 Koneksi error: ReferenceError: supabase is not defined
-    at <anonymous>:4:29
-    at <anonymous>:9:3
+/* CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyC1Yakfe4BkvRKs54Vqp3-mcrf-wSn5Gro",
+  authDomain: "appku-aa5b2.firebaseapp.com",
+  databaseURL: "https://appku-aa5b2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "appku-aa5b2",
+  storageBucket: "appku-aa5b2.firebasestorage.app",
+  messagingSenderId: "431489373226",
+  appId: "1:431489373226:web:1ac51282e3cdb8ccf29f53"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+/* STATE */
+let user = null;
+let agenda = null;
+let mapel = null;
+let questions = [];
+let qIdx = 0;
+let answers = {};
+let ragu = {};
+let timerInt = null;
+let endTime = 0;
+let matchSelection = null;
+let matchPairs = {};
+let violationTimer = null;
+let cheatCount = 30;
+let pendingMapelId = null;
+let currentHistoryMapel = null;
+let currentHistoryQuestions = [];
+let agendasLoaded = false;
+
+// Zoom state
+let zoomedImg = null;
+let currentZoom = 1;
+const MAX_ZOOM = 3;
+const MIN_ZOOM = 0.5;
+const ZOOM_STEP = 0.25;
+
+/* HELPERS */
+function showLoader(show, text = 'Memuat...') { 
+  const loader = document.getElementById('overlay-loader');
+  const textEl = document.getElementById('loader-text');
+  if (loader && textEl) {
+    textEl.innerText = text;
+    if (show) {
+      loader.classList.remove('hidden');
+    } else {
+      loader.classList.add('hidden');
+    }
+  }
+}
 
 function showToast(msg, type = 'success') { 
   const container = document.getElementById('toast-container');
@@ -1873,6 +1941,7 @@ function showToast(msg, type = 'success') {
   `;
   container.appendChild(toast); 
   
+  // Auto remove after 3 seconds
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(100%)';
@@ -1971,6 +2040,151 @@ function formatTanggal(dateString) {
   }
 }
 
+function formatJawaban(type, jawaban, soal) {
+  if (jawaban === '(Tidak dijawab)' || !jawaban) {
+    return '<span style="color:#dc2626; font-weight:600;">(Tidak dijawab)</span>';
+  }
+  
+  if (type.includes('Pilihan Ganda Kompleks')) {
+    const options = jawaban.split(',');
+    return options.map(opt => 
+      `<span style="display:inline-block; background:#10b981; color:white; padding:4px 10px; border-radius:4px; margin-right:5px; margin-bottom:5px;">${opt}</span>`
+    ).join(' ');
+  } 
+  else if (type.includes('Benar/Salah') || type.includes('Setuju/Tidak')) {
+    const answers = jawaban.split(',');
+    let result = '<table style="width:100%; font-size:13px; border-collapse:collapse; margin-top:5px;">';
+    for (let i = 0; i < answers.length; i++) {
+      if (soal['Pernyataan_' + (i+1)]) {
+        const bgColor = answers[i] ? '#10b98120' : '#f8fafc';
+        const textColor = answers[i] ? '#059669' : '#64748b';
+        const borderColor = answers[i] ? '#10b981' : '#e2e8f0';
+        result += `<tr>
+          <td style="padding:8px; border-bottom:1px solid ${borderColor}; background:${bgColor}; border-radius:4px;">${soal['Pernyataan_' + (i+1)]}</td>
+          <td style="padding:8px; border-bottom:1px solid ${borderColor}; text-align:center; color:${textColor}; font-weight:700; background:${bgColor};">${answers[i] || '-'}</td>
+        </tr>`;
+      }
+    }
+    result += '</table>';
+    return result;
+  }
+  else if (type.includes('Pejodohan')) {
+    const pairs = jawaban.split(',');
+    let result = '<div style="display:flex; flex-direction:column; gap:5px; margin-top:5px;">';
+    pairs.forEach(pair => {
+      if (pair.length >= 2) {
+        const left = pair.slice(0,-1);
+        const right = pair.slice(-1);
+        result += `<div style="background:#f0fdf4; padding:10px; border-radius:6px; border:1px solid #10b981;">
+          <span style="font-weight:700; color:#059669;">${left}</span> 
+          <span style="margin:0 10px;">→</span>
+          <span style="font-weight:700; color:#059669;">${right}</span>
+        </div>`;
+      }
+    });
+    result += '</div>';
+    return result;
+  }
+  else if (type.includes('Pilihan Ganda')) {
+    return `<span style="background:#10b981; color:white; padding:4px 12px; border-radius:4px; font-weight:700; display:inline-block;">${jawaban}</span>`;
+  }
+  else {
+    return `<div style="white-space:pre-wrap; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid var(--border);">${jawaban}</div>`;
+  }
+}
+
+function updateMonitoring(status) {
+  if (!user) return;
+  
+  const key = user.NIS_Username + (mapel ? "_" + mapel.key : "");
+  const monitoringData = { 
+    NIS_Username: user.NIS_Username, 
+    Nama_Peserta: user.Nama_Peserta, 
+    Status_Pengerjaan: status, 
+    Last_Update: new Date().toLocaleString(),
+    Jenis_Tes: agenda?.Jenis_Tes || "Ujian Umum"
+  };
+  
+  if (mapel) monitoringData.Mata_Pelajaran = mapel.Nama_Mata_Pelajaran;
+  if (agenda) {
+    monitoringData.Judul_Ujian = agenda.Agenda_Ujian;
+    monitoringData.Jenis_Tes = agenda.Jenis_Tes || "Ujian Umum";
+  }
+  
+  if (status === 'Online' || status === 'Mengerjakan') {
+    monitoringData.Aktivitas_Login = 'Online';
+  }
+  
+  if (status === 'Mengerjakan') {
+    monitoringData.TglJam_Mulai = new Date().toLocaleString();
+  }
+  
+  if (status === 'Selesai') {
+    monitoringData.TglJam_Selesai = new Date().toLocaleString();
+  }
+  
+  db.ref('monitoring_pengerjaan/' + key).update(monitoringData);
+}
+
+/* FUNGSI BARU: Simpan Jawaban Per Mapel dengan Format Jwb(no.soal) */
+function saveJawabanPerMapel() {
+  if (!user || !agenda || !mapel || !questions.length) {
+    console.log('Data tidak lengkap untuk menyimpan jawaban per mapel');
+    return;
+  }
+  
+  const rowKey = `${user.NIS_Username}_${agenda.key}_${mapel.key}`;
+  
+  // Data utama dengan format yang diminta
+  const jawabanData = {
+    NIS_Username: user.NIS_Username,
+    Nama_Peserta: user.Nama_Peserta,
+    AgendaKey: agenda.key,
+    Judul_Ujian: agenda.Agenda_Ujian,
+    Jenis_Tes: agenda.Jenis_Tes || "Ujian Umum",
+    MapelKey: mapel.key,
+    Mata_Pelajaran: mapel.Nama_Mata_Pelajaran,
+    Durasi_Ujian: parseInt(mapel.Durasi_Ujian) || 0,
+    Jumlah_Soal: questions.length,
+    Last_Update: new Date().toISOString()
+  };
+  
+  // Tambahkan TglJam_Mulai hanya jika belum ada
+  if (!jawabanData.TglJam_Mulai) {
+    jawabanData.TglJam_Mulai = new Date().toISOString();
+  }
+  
+  // Hitung statistik
+  let dijawab = 0;
+  let kosong = 0;
+  
+  // Tambahkan jawaban menggunakan nomor soal asli (bukan index array)
+  questions.forEach((question) => {
+    const jawabanKey = `Jwb${question.No_Soal}`; // Menggunakan No_Soal dari database
+    jawabanData[jawabanKey] = answers[question.No_Soal] || '(Tidak dijawab)';
+    
+    // Hitung statistik
+    if (answers[question.No_Soal] && answers[question.No_Soal] !== '(Tidak dijawab)') {
+      dijawab++;
+    } else {
+      kosong++;
+    }
+  });
+  
+  jawabanData.Jumlah_Dijawab = dijawab;
+  jawabanData.Jumlah_Kosong = kosong;
+  jawabanData.Persentase = questions.length > 0 ? Math.round((dijawab / questions.length) * 100) : 0;
+  
+  // Simpan ke database
+  db.ref(`jawaban_permapel/${rowKey}`).update(jawabanData)
+    .then(() => {
+      console.log('Jawaban per mapel berhasil disimpan dengan format Jwb(no.soal)');
+    })
+    .catch(err => {
+      console.error('Error menyimpan jawaban per mapel:', err);
+    });
+}
+
 /* TOGGLE PASSWORD */
 function togglePasswordVisibility(inputId, button) {
   const passwordInput = document.getElementById(inputId);
@@ -2033,8 +2247,10 @@ function openZoomModal(imgSrc, imgAlt) {
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   zoomedImg = document.getElementById('zoomedImage');
   
+  // Add keyboard event listener
   document.addEventListener('keydown', handleZoomKeys);
   
+  // Add drag functionality
   let isDragging = false;
   let startX, startY, translateX = 0, translateY = 0;
   
@@ -2131,6 +2347,7 @@ function resetZoom() {
 
 /* INIT */
 document.addEventListener('DOMContentLoaded', function() {
+  // Check session
   const sessionData = sessionStorage.getItem('cbt_sess');
   if (sessionData) { 
     try {
@@ -2149,6 +2366,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initPasswordToggles();
   setupImageZoom();
   
+  // Initialize custom alert close
   window.closeCustomAlert = closeCustomAlert;
   window.closeCustomConfirm = closeCustomConfirm;
 });
@@ -2180,6 +2398,7 @@ function goView(id) {
     if (overlay) overlay.classList.remove('show');
   }
   
+  // Hide all modals
   const modals = [
     'modal-token',
     'modal-kartu',
@@ -2196,6 +2415,7 @@ function goView(id) {
     if (modal) modal.classList.add('hidden');
   });
   
+  // Hide all views
   const views = [
     'view-auth',
     'view-dashboard',
@@ -2209,6 +2429,7 @@ function goView(id) {
     if (view) view.classList.add('hidden');
   });
   
+  // Show target view
   const target = document.getElementById(id);
   if (target) {
     target.classList.remove('hidden');
@@ -2221,12 +2442,16 @@ function confirmLogout() {
 }
 
 function doLogout() {
+  if (user) updateMonitoring('Offline');
+  
   user = null; 
   agenda = null; 
   mapel = null;
   questions = []; 
   answers = {}; 
   ragu = {};
+  currentHistoryMapel = null; 
+  currentHistoryQuestions = [];
   
   if (timerInt) { 
     clearInterval(timerInt); 
@@ -2252,50 +2477,51 @@ function doLogout() {
 }
 
 /* AUTH */
-async function loadAgendas() {
+function loadAgendas() {
   const selectEl = document.getElementById('r_agenda'); 
   if (!selectEl) return;
   
   selectEl.innerHTML = '<option value="">Memuat agenda...</option>';
   
-  try {
-    const { data, error } = await supabase
-      .from('agenda_ujian')
-      .select('*');
-    
-    if (error) throw error;
-    
-    if (!data || data.length === 0) {
+  db.ref('agenda_ujian').once('value').then(snapshot => {
+    if (!snapshot.exists()) {
       selectEl.innerHTML = '<option value="">Tidak ada agenda tersedia</option>';
       return;
     }
     
     selectEl.innerHTML = '<option value="">-- Pilih Agenda Ujian --</option>';
+    let agendaCount = 0;
     
-    data.forEach(agenda => { 
+    snapshot.forEach(child => { 
+      const agendaData = child.val(); 
       const option = document.createElement('option'); 
-      option.value = agenda.id; 
-      option.text = `${agenda.Agenda_Ujian} (${agenda.Jenis_Tes || 'Ujian'})`;
-      option.dataset.token = agenda.Token_Ujian;
-      option.dataset.name = agenda.Agenda_Ujian;
-      option.dataset.jenis = agenda.Jenis_Tes || "Ujian Umum";
-      option.dataset.start = agenda.TglJam_Mulai;
-      option.dataset.end = agenda.TglJam_Selesai;
+      option.value = child.key; 
+      option.text = `${agendaData.Agenda_Ujian} (${agendaData.Jenis_Tes || 'Ujian'})`;
+      option.dataset.token = agendaData.Token_Ujian;
+      option.dataset.name = agendaData.Agenda_Ujian;
+      option.dataset.jenis = agendaData.Jenis_Tes || "Ujian Umum";
+      option.dataset.start = agendaData.TglJam_Mulai;
+      option.dataset.end = agendaData.TglJam_Selesai;
       selectEl.appendChild(option);
+      agendaCount++;
     });
     
+    if (agendaCount === 0) {
+      selectEl.innerHTML = '<option value="">Tidak ada agenda aktif saat ini</option>';
+    }
+    
     agendasLoaded = true;
-  } catch (err) {
+  }).catch(err => {
     console.error('Error loading agendas:', err);
     selectEl.innerHTML = '<option value="">Error memuat agenda</option>';
-  }
+  });
 }
 
 function loadAgendasIfNeeded() {
   if (!agendasLoaded) loadAgendas();
 }
 
-async function handleRegister() {
+function handleRegister() {
   const agendaSelect = document.getElementById('r_agenda');
   const jenjangSelect = document.getElementById('r_jenjang');
   const waInput = document.getElementById('r_wa');
@@ -2383,65 +2609,57 @@ async function handleRegister() {
   
   showLoader(true, 'Mendaftarkan...');
   
-  try {
-    // Cek apakah username sudah terdaftar
-    const { data: existingUser, error: checkError } = await supabase
-      .from('peserta')
-      .select('*')
-      .eq('NIS_Username', wa)
-      .single();
-    
-    if (existingUser && !checkError) { 
+  db.ref('peserta').orderByChild('NIS_Username').equalTo(wa).once('value').then(snapshot => {
+    if (snapshot.exists()) { 
       showLoader(false); 
       showToast('Nomor WA sudah terdaftar!', 'error'); 
       return; 
     }
     
-    // Insert data peserta baru
-    const { data: newUser, error: insertError } = await supabase
-      .from('peserta')
-      .insert([{
-        NIS_Username: wa, 
-        Nama_Peserta: nama, 
-        Password: pass,
-        Jenjang_Studi: jenjangSelect.value, 
-        Kelas: kelas, 
-        Asal_Sekolah: sekolah,
-        No_WA_Peserta: wa, 
-        No_WA_Ortu: waO, 
-        ID_Agenda: agendaSelect.value,
-        Tanggal_Daftar: new Date().toISOString(), 
-        Status: 'Aktif'
-      }])
-      .select()
-      .single();
+    const ref = db.ref('peserta').push();
+    const pesertaData = {
+      ID_Peserta: ref.key, 
+      NIS_Username: wa, 
+      Nama_Peserta: nama, 
+      Password: pass,
+      Jenjang_Studi: jenjangSelect.value, 
+      Kelas: kelas, 
+      Asal_Sekolah: sekolah,
+      No_WA_Peserta: wa, 
+      No_WA_Ortu: waO, 
+      ID_Agenda: agendaSelect.value,
+      Tanggal_Daftar: new Date().toISOString(), 
+      Status: 'Aktif'
+    };
     
-    if (insertError) throw insertError;
-    
-    showLoader(false); 
-    showToast('Pendaftaran berhasil!');
-    
-    // Ambil data agenda untuk kartu
-    const { data: agendaData, error: agendaError } = await supabase
-      .from('agenda_ujian')
-      .select('*')
-      .eq('id', agendaSelect.value)
-      .single();
-    
-    if (agendaError) {
-      showKartu(newUser, "Agenda Ujian", "TOKEN", "Ujian Umum");
-    } else {
-      showKartu(newUser, agendaData.Agenda_Ujian, agendaData.Token_Ujian, agendaData.Jenis_Tes);
-    }
-    
-  } catch (err) {
+    ref.set(pesertaData).then(() => { 
+      showLoader(false); 
+      showToast('Pendaftaran berhasil!');
+      
+      db.ref('agenda_ujian/' + agendaSelect.value).once('value').then(agSnap => {
+        const agendaData = agSnap.exists() ? agSnap.val() : { 
+          Agenda_Ujian: "Agenda Ujian", 
+          Token_Ujian: "TOKEN", 
+          Jenis_Tes: "Ujian Umum" 
+        };
+        showKartu(pesertaData, agendaData.Agenda_Ujian, agendaData.Token_Ujian, agendaData.Jenis_Tes);
+      }).catch(err => {
+        showKartu(pesertaData, "Agenda Ujian", "TOKEN", "Ujian Umum");
+        console.error('Error loading agenda:', err);
+      });
+    }).catch(err => {
+      showLoader(false);
+      showToast('Gagal menyimpan data: ' + err.message, 'error');
+      console.error('Registration error:', err);
+    });
+  }).catch(err => {
     showLoader(false);
     showToast('Error: ' + err.message, 'error');
-    console.error('Registration error:', err);
-  }
+    console.error('Database error:', err);
+  });
 }
 
-async function handleLogin() {
+function handleLogin() {
   const usernameInput = document.getElementById('l_user');
   const passwordInput = document.getElementById('l_pass');
   
@@ -2460,31 +2678,36 @@ async function handleLogin() {
   
   showLoader(true, 'Login...');
   
-  try {
-    const { data, error } = await supabase
-      .from('peserta')
-      .select('*')
-      .eq('NIS_Username', username)
-      .eq('Password', password)
-      .single();
+  db.ref('peserta').orderByChild('NIS_Username').equalTo(username).once('value').then(snapshot => {
+    showLoader(false); 
     
-    showLoader(false);
-    
-    if (error || !data) {
+    if (!snapshot.exists()) {
       showToast('Username atau password salah', 'error');
       return;
     }
     
-    user = data;
-    sessionStorage.setItem('cbt_sess', JSON.stringify(user));
-    showToast('Login berhasil', 'success');
-    goDashboard();
+    let foundUser = null;
+    snapshot.forEach(child => {
+      const userData = child.val();
+      if (userData.Password === password) {
+        foundUser = userData;
+        foundUser.id = child.key;
+      }
+    });
     
-  } catch (err) {
+    if (foundUser) { 
+      user = foundUser;
+      sessionStorage.setItem('cbt_sess', JSON.stringify(user));
+      showToast('Login berhasil', 'success');
+      goDashboard();
+    } else {
+      showToast('Username atau password salah', 'error');
+    }
+  }).catch(err => {
     showLoader(false);
     showToast('Error: ' + err.message, 'error');
     console.error('Login error:', err);
-  }
+  });
 }
 
 function showKartu(userData, agendaName, token, jenisTes) {
@@ -2548,7 +2771,7 @@ function closeKartu() {
 }
 
 /* DASHBOARD */
-async function goDashboard() {
+function goDashboard() {
   goView('view-dashboard');
   
   const d_nama = document.getElementById('d_nama');
@@ -2577,21 +2800,16 @@ async function goDashboard() {
     return;
   }
   
-  try {
-    const { data: agendaData, error } = await supabase
-      .from('agenda_ujian')
-      .select('*')
-      .eq('id', user.ID_Agenda)
-      .single();
-    
-    if (error || !agendaData) {
+  db.ref('agenda_ujian/' + user.ID_Agenda).once('value').then(snapshot => {
+    if (!snapshot.exists()) {
       agendaList.innerHTML='<div class="agenda-card" style="text-align:center; padding:30px; color:var(--text-muted);">Agenda tidak ditemukan</div>';
       return;
     }
     
-    agenda = agendaData; 
-    agenda.key = agendaData.id;
-    agenda.Jenis_Tes = agendaData.Jenis_Tes || "Ujian Umum";
+    agenda = snapshot.val(); 
+    agenda.key = snapshot.key;
+    agenda.Jenis_Tes = agenda.Jenis_Tes || "Ujian Umum";
+    updateMonitoring('Online');
     
     const now = Date.now();
     const startTime = new Date(agenda.TglJam_Mulai).getTime();
@@ -2623,10 +2841,10 @@ async function goDashboard() {
     `;
     
     startDashTimer(now < startTime ? startTime : endTime);
-  } catch (err) {
+  }).catch(err => {
     agendaList.innerHTML = '<div class="agenda-card" style="text-align:center; padding:30px; color:var(--primary);">Error memuat agenda</div>';
     console.error('Dashboard error:', err);
-  }
+  });
 }
 
 let dashTimer = null;
@@ -2764,7 +2982,7 @@ function setupMapelScroll() {
 }
 
 /* MAPEL LIST */
-async function goMapel() {
+function goMapel() {
   goView('view-mapel');
   
   const mapelContainer = document.getElementById('mapel-container'); 
@@ -2779,62 +2997,57 @@ async function goMapel() {
     return;
   }
   
-  try {
-    // Ambil data mapel berdasarkan ID_Agenda
-    const { data: mapelData, error: mapelError } = await supabase
-      .from('mata_pelajaran')
-      .select('*')
-      .eq('ID_Agenda', agenda.key)
-      .eq('Status_Mapel', 'Siap');
+  const rowKey = user.NIS_Username + "_" + agenda.key;
+  
+  db.ref('jawaban_siswa/' + rowKey).once('value').then(ansSnap => {
+    const rowData = ansSnap.val() || {};
     
-    if (mapelError) throw mapelError;
-    
-    if (!mapelData || mapelData.length === 0) {
-      mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Tidak ada mata pelajaran</div>';
-      return;
-    }
-    
-    // Ambil data jawaban untuk cek status selesai
-    const rowKey = `${user.NIS_Username}_${agenda.key}`;
-    const { data: jawabanData, error: jawabanError } = await supabase
-      .from('jawaban_siswa')
-      .select('*')
-      .eq('row_key', rowKey)
-      .single();
-    
-    mapelContainer.innerHTML = '';
-    let mapelCount = 0;
-    
-    mapelData.forEach(mapelItem => {
-      mapelCount++;
-      const isDone = jawabanData && jawabanData[`Status_${mapelItem.Nama_Mata_Pelajaran}`] === 'Selesai';
+    db.ref('mata_pelajaran').orderByChild('ID_Agenda').equalTo(agenda.key).once('value').then(mapelSnap => {
+      if (!mapelSnap.exists()) {
+        mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Tidak ada mata pelajaran</div>';
+        return;
+      }
       
-      mapelContainer.innerHTML += `
-        <div class="agenda-card">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <h4 style="margin:0 0 5px 0;">${mapelItem.Nama_Mata_Pelajaran}</h4>
-              <div style="font-size:12px; color:var(--text-muted);">
-                📝 ${mapelItem.Jumlah_Soal || 0} Soal • ⏰ ${mapelItem.Durasi_Ujian || 0} Menit
+      mapelContainer.innerHTML = '';
+      let mapelCount = 0;
+      
+      mapelSnap.forEach(mapelChild => {
+        const mapelData = mapelChild.val(); 
+        
+        if (mapelData.Status_Mapel !== 'Siap') return;
+        
+        mapelCount++;
+        const isDone = rowData['Status_' + mapelData.Nama_Mata_Pelajaran] === 'Selesai';
+        
+        mapelContainer.innerHTML += `
+          <div class="agenda-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h4 style="margin:0 0 5px 0;">${mapelData.Nama_Mata_Pelajaran}</h4>
+                <div style="font-size:12px; color:var(--text-muted);">
+                  📝 ${mapelData.Jumlah_Soal || 0} Soal • ⏰ ${mapelData.Durasi_Ujian || 0} Menit
+                </div>
               </div>
+              <button class="btn ${isDone?'btn-success':'btn-primary'}" style="width:auto;" 
+                ${isDone?'disabled':`onclick="startExam('${mapelChild.key}')"`}>
+                ${isDone?'SELESAI':'KERJAKAN'}
+              </button>
             </div>
-            <button class="btn ${isDone?'btn-success':'btn-primary'}" style="width:auto;" 
-              ${isDone?'disabled':`onclick="startExam('${mapelItem.id}')"`}>
-              ${isDone?'SELESAI':'KERJAKAN'}
-            </button>
           </div>
-        </div>
-      `;
+        `;
+      });
+      
+      if (mapelCount === 0) {
+        mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada mata pelajaran yang siap</div>';
+      }
+    }).catch(err => {
+      mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--primary);">Error memuat mata pelajaran</div>';
+      console.error('Mapel load error:', err);
     });
-    
-    if (mapelCount === 0) {
-      mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada mata pelajaran yang siap</div>';
-    }
-    
-  } catch (err) {
-    mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--primary);">Error memuat mata pelajaran</div>';
-    console.error('Mapel load error:', err);
-  }
+  }).catch(err => {
+    mapelContainer.innerHTML = '<div style="text-align:center; padding:40px; color:var(--primary);">Error memuat data</div>';
+    console.error('Jawaban load error:', err);
+  });
 }
 
 /* EXAM */
@@ -2859,10 +3072,24 @@ function confirmStartExam() {
   
   showLoader(true, 'Menyiapkan ujian...');
   
-  initExamSession();
+  db.ref('mata_pelajaran/' + pendingMapelId).once('value').then(snapshot => { 
+    if (!snapshot.exists()) { 
+      showLoader(false); 
+      showToast('Mapel tidak ditemukan', 'error'); 
+      return; 
+    }
+    
+    mapel = snapshot.val(); 
+    mapel.key = pendingMapelId; 
+    initExamSession(); 
+  }).catch(err => { 
+    showLoader(false); 
+    showToast('Error memuat soal', 'error'); 
+    console.error('Start exam error:', err); 
+  });
 }
 
-async function initExamSession() {
+function initExamSession() {
   goView('view-exam');
   
   const e_mapel = document.getElementById('e_mapel');
@@ -2873,106 +3100,81 @@ async function initExamSession() {
   if (e_user && user) e_user.innerText = user.Nama_Peserta;
   if (q_area) q_area.innerHTML = '';
   
-  try {
-    // Ambil data mapel
-    const { data: mapelData, error: mapelError } = await supabase
-      .from('mata_pelajaran')
-      .select('*')
-      .eq('id', pendingMapelId)
-      .single();
-    
-    if (mapelError || !mapelData) {
-      showLoader(false);
-      showCustomAlert('Mapel tidak ditemukan', 'Error', '❌');
-      goMapel();
-      return;
+  db.ref('bank_soal').orderByChild('ID_Mapel').equalTo(mapel.key).once('value').then(questionSnap => {
+    if (!questionSnap.exists()) { 
+      showLoader(false); 
+      showCustomAlert('Tidak ada soal untuk mapel ini', 'Error', '❌'); 
+      goMapel(); 
+      return; 
     }
     
-    mapel = mapelData;
-    mapel.key = mapelData.id;
-    
-    // Ambil soal untuk mapel ini
-    const { data: questionsData, error: questionsError } = await supabase
-      .from('bank_soal')
-      .select('*')
-      .eq('ID_Mapel', mapel.key)
-      .order('No_Soal');
-    
-    if (questionsError || !questionsData || questionsData.length === 0) {
-      showLoader(false);
-      showCustomAlert('Tidak ada soal untuk mapel ini', 'Error', '❌');
-      goMapel();
-      return;
-    }
-    
-    questions = questionsData;
-    
-    const rowKey = `${user.NIS_Username}_${agenda.key}`;
-    user.sessId = rowKey;
-    
-    // Cek atau buat data jawaban siswa
-    const { data: existingJawaban, error: jawabanError } = await supabase
-      .from('jawaban_siswa')
-      .select('*')
-      .eq('row_key', rowKey)
-      .single();
-    
-    let jawabanData = existingJawaban || {};
-    const updates = {};
-    
-    if (!jawabanData.NIS_Username) {
-      updates.NIS_Username = user.NIS_Username;
-      updates.Nama_Peserta = user.Nama_Peserta;
-      updates.Judul_Ujian = agenda.Agenda_Ujian;
-      updates.TglJam_Mulai = new Date().toISOString();
-      updates.Jenis_Tes = agenda.Jenis_Tes || "Ujian Umum";
-      updates.row_key = rowKey;
-    }
-    
-    let endAt = jawabanData[`EndAt_${mapel.Nama_Mata_Pelajaran}`];
-    if (!endAt) {
-      endAt = Date.now() + (parseInt(mapel.Durasi_Ujian) * 60000);
-      updates[`EndAt_${mapel.Nama_Mata_Pelajaran}`] = endAt;
-    }
-    
-    endTime = endAt;
-    
-    // Update atau insert data jawaban
-    if (Object.keys(updates).length > 0) {
-      if (existingJawaban) {
-        await supabase
-          .from('jawaban_siswa')
-          .update(updates)
-          .eq('row_key', rowKey);
-      } else {
-        await supabase
-          .from('jawaban_siswa')
-          .insert([updates]);
-      }
-    }
-    
-    // Load existing answers
-    answers = {};
-    Object.keys(jawabanData).forEach(key => { 
-      if (key.startsWith('Jwb')) {
-        const noSoal = key.substring(3);
-        answers[noSoal] = jawabanData[key];
-      }
+    questions = []; 
+    questionSnap.forEach(questionChild => { 
+      const questionData = questionChild.val(); 
+      questionData.key = questionChild.key; 
+      questions.push(questionData); 
     });
     
-    qIdx = 0; 
+    questions.sort((a,b) => Number(a.No_Soal) - Number(b.No_Soal));
+    
+    const rowKey = user.NIS_Username + "_" + agenda.key;
+    user.sessId = rowKey;
+    
+    db.ref('jawaban_siswa/' + rowKey).once('value').then(jawabanSnap => {
+      let jawabanData = jawabanSnap.val() || {};
+      const updates = {};
+      
+      if (!jawabanData.NIS_Username) {
+        updates.NIS_Username = user.NIS_Username;
+        updates.Nama_Peserta = user.Nama_Peserta;
+        updates.Judul_Ujian = agenda.Agenda_Ujian;
+        updates.TglJam_Mulai = new Date().toISOString();
+        updates.Jenis_Tes = agenda.Jenis_Tes || "Ujian Umum";
+      }
+      
+      let endAt = jawabanData['EndAt_' + mapel.Nama_Mata_Pelajaran];
+      if (!endAt) {
+        endAt = Date.now() + (parseInt(mapel.Durasi_Ujian) * 60000);
+        updates['EndAt_' + mapel.Nama_Mata_Pelajaran] = endAt;
+      }
+      
+      endTime = endAt;
+      
+      if (Object.keys(updates).length > 0) {
+        db.ref('jawaban_siswa/' + rowKey).update(updates);
+      }
+      
+      answers = {};
+      Object.keys(jawabanData).forEach(key => { 
+        if (key.startsWith('Jwb')) {
+          const noSoal = key.substring(3);
+          answers[noSoal] = jawabanData[key];
+        }
+      });
+      
+      // Simpan data awal ke tabel jawaban_permapel dengan format Jwb1-JwbN
+      setTimeout(() => {
+        saveJawabanPerMapel();
+      }, 1000);
+      
+      qIdx = 0; 
+      showLoader(false); 
+      renderQuestion(0);
+      updateMonitoring('Mengerjakan');
+      
+      if (timerInt) clearInterval(timerInt); 
+      timerInt = setInterval(updateTimer, 1000);
+      startAntiCheat();
+    }).catch(err => {
+      showLoader(false);
+      showToast('Error memuat jawaban', 'error');
+      console.error('Jawaban load error:', err);
+    });
+  }).catch(err => { 
     showLoader(false); 
-    renderQuestion(0);
-    
-    if (timerInt) clearInterval(timerInt); 
-    timerInt = setInterval(updateTimer, 1000);
-    startAntiCheat();
-    
-  } catch (err) {
-    showLoader(false);
-    showToast('Error memulai ujian', 'error');
-    console.error('Start exam error:', err);
-  }
+    showToast('Error memuat soal', 'error'); 
+    console.error('Question load error:', err); 
+  });
 }
 
 function updateTimer() {
@@ -2997,6 +3199,10 @@ function updateTimer() {
     } else if (timeLeft <= 600000) {
       timerElement.style.color = '#f59e0b';
     }
+  }
+  
+  if (seconds % 15 === 0) {
+    updateMonitoring('Mengerjakan');
   }
 }
 
@@ -3171,8 +3377,8 @@ function renderQuestion(idx) {
   }
 }
 
-/* SAVING FUNCTIONS */
-async function saveSingleAnswer(questionNo, value) {
+/* SAVING FUNCTIONS - MODIFIED */
+function saveSingleAnswer(questionNo, value) {
   const saveStatus = document.getElementById('save-st');
   if (saveStatus) {
     saveStatus.classList.add('show');
@@ -3181,44 +3387,33 @@ async function saveSingleAnswer(questionNo, value) {
   answers[questionNo] = value;
   
   const updateData = {
-    [`Jwb${questionNo}`]: value,
+    ['Jwb' + questionNo]: value, // Menggunakan 'Jwb' + questionNo (nomor soal asli)
+    Jenis_Tes: agenda.Jenis_Tes || "Ujian Umum",
     Last_Update: new Date().toISOString()
   };
   
-  try {
-    // Update jawaban_siswa
-    await supabase
-      .from('jawaban_siswa')
-      .update(updateData)
-      .eq('row_key', user.sessId);
-    
-    // Update jawaban_permapel
-    const permapelKey = `${user.NIS_Username}_${agenda.key}_${mapel.key}`;
-    const permapelUpdate = {
-      [`Jwb${questionNo}`]: value,
-      Last_Update: new Date().toISOString()
-    };
-    
-    await supabase
-      .from('jawaban_permapel')
-      .update(permapelUpdate)
-      .eq('row_key', permapelKey);
-    
-    setTimeout(() => { 
+  // Simpan ke tabel utama
+  db.ref('jawaban_siswa/' + user.sessId).update(updateData)
+    .then(() => {
+      // Juga simpan ke tabel per mapel dengan format Jwb(no.soal)
+      saveJawabanPerMapel();
+      
+      setTimeout(() => { 
+        if (saveStatus) {
+          saveStatus.classList.remove('show');
+        }
+      }, 500);
+    })
+    .catch(err => {
       if (saveStatus) {
         saveStatus.classList.remove('show');
       }
-    }, 500);
-    
-  } catch (err) {
-    if (saveStatus) {
-      saveStatus.classList.remove('show');
-    }
-    showToast('Gagal menyimpan', 'error');
-    console.error('Save error:', err);
-  }
+      showToast('Gagal menyimpan', 'error');
+      console.error('Save error:', err);
+    });
   
   renderNavigation();
+  updateMonitoring('Mengerjakan');
 }
 
 function saveComplexAnswer(questionNo) {
@@ -3377,7 +3572,7 @@ function toggleRagu() {
   }
 }
 
-/* FINISH & ANTI CHEAT */
+/* FINISH & ANTI CHEAT - MODIFIED */
 function finishCheck() {
   const unanswered = questions.filter(question => !answers[question.No_Soal]).length;
   let message = 'Yakin ingin menyelesaikan ujian mapel ini?';
@@ -3389,7 +3584,7 @@ function finishCheck() {
   showCustomConfirm(message, () => finishExam(false));
 }
 
-async function finishExam(isTimeout) {
+function finishExam(isTimeout) {
   showLoader(true, 'Mengirim jawaban...');
   
   stopAntiCheat();
@@ -3399,65 +3594,63 @@ async function finishExam(isTimeout) {
     timerInt = null;
   }
   
-  try {
-    const updates = {
-      [`Status_${mapel.Nama_Mata_Pelajaran}`]: 'Selesai',
-      Last_Finished_Mapel: mapel.Nama_Mata_Pelajaran,
-      TglJam_Selesai: new Date().toISOString(),
-      Last_Update: new Date().toISOString()
-    };
-    
-    // Update jawaban_siswa
-    await supabase
-      .from('jawaban_siswa')
-      .update(updates)
-      .eq('row_key', user.sessId);
-    
-    // Update jawaban_permapel
-    const permapelKey = `${user.NIS_Username}_${agenda.key}_${mapel.key}`;
-    
-    // Hitung statistik
-    let dijawab = 0;
-    let kosong = 0;
-    
-    questions.forEach((question) => {
-      if (answers[question.No_Soal] && answers[question.No_Soal] !== '(Tidak dijawab)') {
-        dijawab++;
-      } else {
-        kosong++;
-      }
+  const updates = {
+    ['Status_' + mapel.Nama_Mata_Pelajaran]: 'Selesai',
+    Jenis_Tes: agenda.Jenis_Tes || "Ujian Umum",
+    Last_Finished_Mapel: mapel.Nama_Mata_Pelajaran,
+    TglJam_Selesai: new Date().toISOString(),
+    Last_Update: new Date().toISOString()
+  };
+  
+  // Simpan ke tabel utama
+  db.ref('jawaban_siswa/' + user.sessId).update(updates)
+    .then(() => {
+      // Update tabel per mapel dengan status selesai dan format Jwb1-JwbN
+      const permapelKey = `${user.NIS_Username}_${agenda.key}_${mapel.key}`;
+      const permapelUpdates = {
+        Status: 'Selesai',
+        TglJam_Selesai: new Date().toISOString(),
+        Waktu_Pengerjaan: Math.round((Date.now() - (new Date(endTime - (mapel.Durasi_Ujian * 60000)).getTime())) / 60000) + ' menit',
+        Last_Update: new Date().toISOString()
+      };
+      
+      // Simpan jawaban terakhir ke permapel dengan format Jwb1-JwbN
+      saveJawabanPerMapel();
+      
+      // Update status selesai
+      db.ref(`jawaban_permapel/${permapelKey}`).update(permapelUpdates)
+        .then(() => {
+          updateMonitoring('Selesai');
+          showLoader(false);
+          
+          if (isTimeout) {
+            showCustomAlert('Waktu habis! Jawaban telah dikirim.', 'Waktu Habis', '⏰');
+          } else {
+            showCustomAlert('Jawaban Mapel Ini Berhasil Dikirim', 'Sukses', '✅');
+          }
+          
+          goMapel();
+        })
+        .catch(err => {
+          console.error('Error update status per mapel:', err);
+          // Tetap lanjutkan meski ada error
+          updateMonitoring('Selesai');
+          showLoader(false);
+          
+          if (isTimeout) {
+            showCustomAlert('Waktu habis! Jawaban telah dikirim.', 'Waktu Habis', '⏰');
+          } else {
+            showCustomAlert('Jawaban Mapel Ini Berhasil Dikirim', 'Sukses', '✅');
+          }
+          
+          goMapel();
+        });
+    })
+    .catch(err => {
+      showLoader(false);
+      showCustomAlert('Gagal mengirim jawaban', 'Error', '❌');
+      console.error('Finish exam error:', err);
     });
-    
-    const permapelUpdates = {
-      Status: 'Selesai',
-      TglJam_Selesai: new Date().toISOString(),
-      Waktu_Pengerjaan: Math.round((Date.now() - (new Date(endTime - (mapel.Durasi_Ujian * 60000)).getTime())) / 60000) + ' menit',
-      Jumlah_Dijawab: dijawab,
-      Jumlah_Kosong: kosong,
-      Persentase: questions.length > 0 ? Math.round((dijawab / questions.length) * 100) : 0,
-      Last_Update: new Date().toISOString()
-    };
-    
-    await supabase
-      .from('jawaban_permapel')
-      .update(permapelUpdates)
-      .eq('row_key', permapelKey);
-    
-    showLoader(false);
-    
-    if (isTimeout) {
-      showCustomAlert('Waktu habis! Jawaban telah dikirim.', 'Waktu Habis', '⏰');
-    } else {
-      showCustomAlert('Jawaban Mapel Ini Berhasil Dikirim', 'Sukses', '✅');
-    }
-    
-    goMapel();
-    
-  } catch (err) {
-    showLoader(false);
-    showCustomAlert('Gagal mengirim jawaban', 'Error', '❌');
-    console.error('Finish exam error:', err);
-  }
 }
 
 function startAntiCheat() {
@@ -3537,13 +3730,14 @@ function resumeFromViolation() {
   }
 }
 
-/* HISTORY */
-async function viewHistory() { 
+/* HISTORY - MODIFIED */
+function viewHistory() { 
   goView('view-history'); 
-  await loadHistoryPerMapel(); 
+  loadHistoryPerMapel(); 
 }
 
-async function loadHistoryPerMapel() {
+/* FUNGSI BARU: Load History Per Mapel dengan Format Jwb1-JwbN */
+function loadHistoryPerMapel() {
   const container = document.getElementById('history-container');
   if (!container) return;
   
@@ -3554,103 +3748,110 @@ async function loadHistoryPerMapel() {
     return;
   }
   
-  try {
-    const { data: historyData, error } = await supabase
-      .from('jawaban_permapel')
-      .select('*')
-      .eq('NIS_Username', user.NIS_Username)
-      .eq('Status', 'Selesai');
-    
-    if (error) throw error;
-    
-    if (!historyData || historyData.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada jawaban yang dikirim</div>';
-      return;
-    }
-    
-    let html = '';
-    let mapelCount = 0;
-    
-    historyData.forEach(jawabanData => {
-      if (jawabanData.Judul_Ujian === agenda.Agenda_Ujian) {
-        mapelCount++;
+  // Ambil data dari jawaban_permapel berdasarkan NIS_Username
+  db.ref('jawaban_permapel').orderByChild('NIS_Username').equalTo(user.NIS_Username).once('value')
+    .then(snapshot => {
+      if (!snapshot.exists()) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada jawaban yang dikirim</div>';
+        return;
+      }
+      
+      let html = '';
+      let mapelCount = 0;
+      
+      snapshot.forEach(child => {
+        const jawabanData = child.val();
         
-        html += `
-          <div class="history-card" onclick="viewDetailJawabanPerMapel('${jawabanData.row_key}')">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <div style="font-weight:700; font-size:16px; color:var(--text-main);">${jawabanData.Mata_Pelajaran}</div>
-                <div style="font-size:13px; color:var(--text-muted); margin-top:5px;">
-                  📝 ${jawabanData.Jumlah_Soal || 0} Soal • 
-                  ✅ ${jawabanData.Jumlah_Dijawab || 0} Dijawab • 
-                  ⏱️ ${jawabanData.Waktu_Pengerjaan || '0 menit'}
+        // Filter hanya yang sesuai dengan agenda saat ini
+        if (jawabanData.Judul_Ujian === agenda.Agenda_Ujian && jawabanData.Status === 'Selesai') {
+          mapelCount++;
+          
+          // Hitung jumlah jawaban yang diisi (bukan '(Tidak dijawab)')
+          let jumlahDijawab = 0;
+          for (let i = 1; i <= jawabanData.Jumlah_Soal; i++) {
+            const jawabanKey = `Jwb${i}`;
+            if (jawabanData[jawabanKey] && jawabanData[jawabanKey] !== '(Tidak dijawab)') {
+              jumlahDijawab++;
+            }
+          }
+          
+          html += `
+            <div class="history-card" onclick="viewDetailJawabanPerMapel('${child.key}')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-weight:700; font-size:16px; color:var(--text-main);">${jawabanData.Mata_Pelajaran}</div>
+                  <div style="font-size:13px; color:var(--text-muted); margin-top:5px;">
+                    📝 ${jawabanData.Jumlah_Soal || 0} Soal • 
+                    ✅ ${jumlahDijawab} Dijawab • 
+                    ⏱️ ${jawabanData.Waktu_Pengerjaan || '0 menit'}
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="background:${jawabanData.Persentase >= 70 ? 'var(--success)' : jawabanData.Persentase >= 50 ? 'var(--warning)' : 'var(--danger)'}; 
+                       color:white; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700;">
+                    ${jawabanData.Persentase || 0}%
+                  </div>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:5px;">
+                    ${formatTanggal(jawabanData.TglJam_Selesai)}
+                  </div>
                 </div>
               </div>
-              <div style="text-align:right;">
-                <div style="background:${jawabanData.Persentase >= 70 ? 'var(--success)' : jawabanData.Persentase >= 50 ? 'var(--warning)' : 'var(--danger)'}; 
-                     color:white; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700;">
-                  ${jawabanData.Persentase || 0}%
-                </div>
-                <div style="font-size:11px; color:var(--text-muted); margin-top:5px;">
-                  ${formatTanggal(jawabanData.TglJam_Selesai)}
-                </div>
+              <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; gap:10px; font-size:12px; flex-wrap:wrap;">
+                <div><strong>Jenis Tes:</strong> ${jawabanData.Jenis_Tes || 'Ujian Umum'}</div>
+                <div><strong>Mulai:</strong> ${formatTanggal(jawabanData.TglJam_Mulai)}</div>
+                <div><strong>Selesai:</strong> ${formatTanggal(jawabanData.TglJam_Selesai)}</div>
               </div>
             </div>
-            <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; gap:10px; font-size:12px; flex-wrap:wrap;">
-              <div><strong>Jenis Tes:</strong> ${jawabanData.Jenis_Tes || 'Ujian Umum'}</div>
-              <div><strong>Mulai:</strong> ${formatTanggal(jawabanData.TglJam_Mulai)}</div>
-              <div><strong>Selesai:</strong> ${formatTanggal(jawabanData.TglJam_Selesai)}</div>
-            </div>
+          `;
+        }
+      });
+      
+      if (mapelCount === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada ujian yang selesai</div>';
+      } else {
+        container.innerHTML = `
+          <div style="margin-bottom:20px;">
+            <div style="font-weight:700; font-size:18px; color:var(--text-main);">${agenda.Agenda_Ujian}</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:5px;">${agenda.Deskripsi_Ujian || ''}</div>
           </div>
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:10px;">
+            MATA PELAJARAN YANG SELESAI (${mapelCount})
+          </div>
+          ${html}
         `;
       }
+    })
+    .catch(err => {
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--primary);">Error memuat history</div>';
+      console.error('History load error:', err);
     });
-    
-    if (mapelCount === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">Belum ada ujian yang selesai</div>';
-    } else {
-      container.innerHTML = `
-        <div style="margin-bottom:20px;">
-          <div style="font-weight:700; font-size:18px; color:var(--text-main);">${agenda.Agenda_Ujian}</div>
-          <div style="font-size:13px; color:var(--text-muted); margin-top:5px;">${agenda.Deskripsi_Ujian || ''}</div>
-        </div>
-        <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:10px;">
-          MATA PELAJARAN YANG SELESAI (${mapelCount})
-        </div>
-        ${html}
-      `;
-    }
-  } catch (err) {
-    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--primary);">Error memuat history</div>';
-    console.error('History load error:', err);
-  }
 }
 
-async function viewDetailJawabanPerMapel(rowKey) {
+/* FUNGSI BARU: View Detail Jawaban Per Mapel dengan Format Jwb1-JwbN */
+function viewDetailJawabanPerMapel(permapelKey) {
   showLoader(true, 'Memuat detail jawaban...');
   
-  try {
-    const { data: jawabanData, error } = await supabase
-      .from('jawaban_permapel')
-      .select('*')
-      .eq('row_key', rowKey)
-      .single();
-    
-    if (error || !jawabanData) {
+  // Ambil data dari jawaban_permapel
+  db.ref(`jawaban_permapel/${permapelKey}`).once('value')
+    .then(snapshot => {
+      if (!snapshot.exists()) {
+        showLoader(false);
+        showToast('Data jawaban tidak ditemukan', 'error');
+        return;
+      }
+      
+      const jawabanData = snapshot.val();
       showLoader(false);
-      showToast('Data jawaban tidak ditemukan', 'error');
-      return;
-    }
-    
-    showLoader(false);
-    renderDetailJawabanPerMapelContent(jawabanData);
-  } catch (err) {
-    showLoader(false);
-    showToast('Error memuat detail', 'error');
-    console.error('Detail permapel load error:', err);
-  }
+      renderDetailJawabanPerMapelContent(jawabanData);
+    })
+    .catch(err => {
+      showLoader(false);
+      showToast('Error memuat detail', 'error');
+      console.error('Detail permapel load error:', err);
+    });
 }
 
+/* FUNGSI BARU: Render Detail Jawaban Per Mapel dengan Format Jwb(no.soal) */
 function renderDetailJawabanPerMapelContent(jawabanData) {
   const content = document.getElementById('detail-content');
   const title = document.getElementById('detail-title');
@@ -3662,9 +3863,12 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
   // Ekstrak semua jawaban Jwb(no.soal)
   let jawabanList = [];
   
+  // Cari semua kunci yang dimulai dengan 'Jwb' dan ambil nomor soalnya
   Object.keys(jawabanData).forEach(key => {
-    if (key.startsWith('Jwb') && key !== 'Jwb_') {
+    if (key.startsWith('Jwb') && key !== 'Jwb_') { // Filter hanya kunci Jwb diikuti angka
       const noSoal = key.replace('Jwb', '');
+      
+      // Pastikan ini adalah angka (bukan properti lain yang kebetulan dimulai dengan Jwb)
       if (!isNaN(noSoal) && noSoal !== '') {
         jawabanList.push({
           no: parseInt(noSoal),
@@ -3674,6 +3878,7 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
     }
   });
   
+  // Urutkan berdasarkan nomor soal
   jawabanList.sort((a, b) => a.no - b.no);
   
   let html = `
@@ -3732,6 +3937,7 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
     <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:20px;">
   `;
   
+  // Tampilkan navigasi nomor soal berdasarkan nomor soal asli
   jawabanList.forEach(item => {
     const isDijawab = item.jawaban && item.jawaban !== '(Tidak dijawab)';
     html += `
@@ -3752,6 +3958,7 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
   
   html += `</div>`;
   
+  // Tampilkan daftar jawaban lengkap dengan format Jwb(no.soal)
   html += `
     <div style="font-weight:700; margin-bottom:15px; color:var(--text-main); font-size:16px;">DETAIL JAWABAN (Format: Jwb${jawabanList[0]?.no || 1}-Jwb${jawabanList[jawabanList.length-1]?.no || jawabanList.length}):</div>
     <div style="background:#f8fafc; padding:15px; border-radius:8px;" id="detail-jawaban-list">
@@ -3793,11 +4000,13 @@ function renderDetailJawabanPerMapelContent(jawabanData) {
   }
 }
 
+/* FUNGSI TAMBAHAN: Scroll ke jawaban tertentu */
 function scrollToJawaban(no) {
   const element = document.getElementById(`jawaban-${no}`);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     
+    // Tambahkan highlight sementara
     element.style.backgroundColor = '#fef3c7';
     setTimeout(() => {
       element.style.backgroundColor = '';
@@ -3810,9 +4019,12 @@ function closeDetailJawaban() {
   if (detailModal) {
     detailModal.classList.add('hidden');
   }
+  
+  currentHistoryMapel = null;
+  currentHistoryQuestions = [];
 }
 
-async function downloadHasilUjian() {
+function downloadHasilUjian() {
   if (!user || !agenda) {
     showToast('Data tidak lengkap', 'error');
     return;
@@ -3820,132 +4032,131 @@ async function downloadHasilUjian() {
   
   showLoader(true, 'Menyiapkan download...');
   
-  try {
-    const permapelKey = `${user.NIS_Username}_${agenda.key}_${mapel ? mapel.key : 'unknown'}`;
-    
-    const { data: mapelData, error } = await supabase
-      .from('jawaban_permapel')
-      .select('*')
-      .eq('row_key', permapelKey)
-      .single();
-    
-    if (error || !mapelData) {
-      showLoader(false);
-      showToast('Tidak ada data mapel', 'error');
-      return;
-    }
-    
-    let jawabanList = [];
-    for (let i = 1; i <= mapelData.Jumlah_Soal; i++) {
-      const jawabanKey = `Jwb${i}`;
-      if (mapelData[jawabanKey] !== undefined) {
-        jawabanList.push({
-          no: i,
-          jawaban: mapelData[jawabanKey]
-        });
-      }
-    }
-    
-    const content = document.createElement('div');
-    content.style.padding = '30px';
-    content.style.fontFamily = 'Arial, sans-serif';
-    content.style.background = 'white';
-    content.style.maxWidth = '800px';
-    content.style.margin = '0 auto';
-    
-    let soalHTML = '';
-    jawabanList.forEach((jawaban, index) => {
-      const isDijawab = jawaban.jawaban && jawaban.jawaban !== '(Tidak dijawab)';
+  // Ambil data mapel terakhir yang dikerjakan
+  const permapelKey = `${user.NIS_Username}_${agenda.key}_${mapel ? mapel.key : 'unknown'}`;
+  
+  db.ref(`jawaban_permapel/${permapelKey}`).once('value')
+    .then(mapelSnapshot => {
+      const mapelData = mapelSnapshot.val();
       
-      soalHTML += `
-        <div style="margin-bottom:25px; padding-bottom:25px; ${index < jawabanList.length - 1 ? 'border-bottom:1px solid #ddd;' : ''}">
-          <div style="background:#f8fafc; padding:15px; border-radius:5px; margin-bottom:15px;">
-            <div style="font-weight:bold; color:#dc2626; margin-bottom:10px; font-size:16px;">Jwb${jawaban.no} (Soal No. ${jawaban.no})</div>
+      if (!mapelData) {
+        showLoader(false);
+        showToast('Tidak ada data mapel', 'error');
+        return;
+      }
+      
+      // Ekstrak semua jawaban Jwb1-JwbN
+      let jawabanList = [];
+      for (let i = 1; i <= mapelData.Jumlah_Soal; i++) {
+        const jawabanKey = `Jwb${i}`;
+        if (mapelData[jawabanKey] !== undefined) {
+          jawabanList.push({
+            no: i,
+            jawaban: mapelData[jawabanKey]
+          });
+        }
+      }
+      
+      const content = document.createElement('div');
+      content.style.padding = '30px';
+      content.style.fontFamily = 'Arial, sans-serif';
+      content.style.background = 'white';
+      content.style.maxWidth = '800px';
+      content.style.margin = '0 auto';
+      
+      let soalHTML = '';
+      jawabanList.forEach((jawaban, index) => {
+        const isDijawab = jawaban.jawaban && jawaban.jawaban !== '(Tidak dijawab)';
+        
+        soalHTML += `
+          <div style="margin-bottom:25px; padding-bottom:25px; ${index < jawabanList.length - 1 ? 'border-bottom:1px solid #ddd;' : ''}">
+            <div style="background:#f8fafc; padding:15px; border-radius:5px; margin-bottom:15px;">
+              <div style="font-weight:bold; color:#dc2626; margin-bottom:10px; font-size:16px;">Jwb${jawaban.no} (Soal No. ${jawaban.no})</div>
+            </div>
+            <div style="background:${isDijawab ? '#f0fdf4' : '#fef2f2'}; padding:15px; border-radius:5px; border-left:4px solid ${isDijawab ? '#10b981' : '#dc2626'};">
+              <div style="font-weight:bold; margin-bottom:10px; color:${isDijawab ? '#059669' : '#dc2626'};">${isDijawab ? '✓ JAWABAN ANDA:' : '✗ TIDAK DIJAWAB'}</div>
+              <div style="font-size:14px;">${jawaban.jawaban || '(Tidak ada jawaban)'}</div>
+            </div>
           </div>
-          <div style="background:${isDijawab ? '#f0fdf4' : '#fef2f2'}; padding:15px; border-radius:5px; border-left:4px solid ${isDijawab ? '#10b981' : '#dc2626'};">
-            <div style="font-weight:bold; margin-bottom:10px; color:${isDijawab ? '#059669' : '#dc2626'};">${isDijawab ? '✓ JAWABAN ANDA:' : '✗ TIDAK DIJAWAB'}</div>
-            <div style="font-size:14px;">${jawaban.jawaban || '(Tidak ada jawaban)'}</div>
+        `;
+      });
+      
+      content.innerHTML = `
+        <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #dc2626; padding-bottom:20px;">
+          <h1 style="color:#dc2626; margin-bottom:10px;">HASIL UJIAN PER MAPEL</h1>
+          <h2 style="color:#0f172a; margin-top:0;">${mapelData.Mata_Pelajaran}</h2>
+          <div style="font-size:14px; color:#64748b; margin-top:10px;">
+            Format: NIS_Username • AgendaKey • MapelKey • Jwb1-Jwb${mapelData.Jumlah_Soal}
           </div>
+        </div>
+        
+        <div style="margin-bottom:30px;">
+          <h3 style="color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">INFORMASI DATA BASE</h3>
+          <table style="width:100%; border-collapse:collapse; font-size:14px;">
+            <tr><td style="padding:8px; width:200px; color:#64748b;"><strong>NIS_Username:</strong></td><td style="padding:8px;">${mapelData.NIS_Username}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>AgendaKey:</strong></td><td style="padding:8px;">${mapelData.AgendaKey}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>MapelKey:</strong></td><td style="padding:8px;">${mapelData.MapelKey}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Mata Pelajaran:</strong></td><td style="padding:8px;">${mapelData.Mata_Pelajaran}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Jumlah Soal:</strong></td><td style="padding:8px;">${mapelData.Jumlah_Soal || jawabanList.length}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Dijawab:</strong></td><td style="padding:8px;">${mapelData.Jumlah_Dijawab || 0}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Kosong:</strong></td><td style="padding:8px;">${mapelData.Jumlah_Kosong || 0}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Persentase:</strong></td><td style="padding:8px;">${mapelData.Persentase || 0}%</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Waktu Pengerjaan:</strong></td><td style="padding:8px;">${mapelData.Waktu_Pengerjaan || 'Tidak tercatat'}</td></tr>
+            <tr><td style="padding:8px; color:#64748b;"><strong>Tanggal Download:</strong></td><td style="padding:8px;">${new Date().toLocaleDateString('id-ID', { 
+              day: '2-digit', 
+              month: 'long', 
+              year: 'numeric',
+              hour: '2-digit', 
+              minute: '2-digit'
+            })}</td></tr>
+          </table>
+        </div>
+        
+        <h3 style="color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-top:40px;">DAFTAR JAWABAN (Jwb1-Jwb${mapelData.Jumlah_Soal})</h3>
+        ${soalHTML}
+        
+        <div style="margin-top:50px; padding-top:20px; border-top:1px solid #ddd; text-align:center; color:#64748b; font-size:12px;">
+          <p>Dokumen ini dihasilkan secara otomatis oleh Sistem CBT Ujian Online</p>
+          <p>Format Database: NIS_Username • AgendaKey • MapelKey • Jwb1-JwbN</p>
+          <p>${new Date().toLocaleDateString('id-ID', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}</p>
         </div>
       `;
+      
+      html2canvas(content, { 
+        scale: 2, 
+        useCORS: true, 
+        logging: false, 
+        backgroundColor: '#ffffff' 
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        const fileName = `Hasil_${mapelData.Mata_Pelajaran.replace(/\s+/g, '_')}_${user.NIS_Username}_${new Date().getTime()}.png`;
+        
+        link.download = fileName;
+        link.href = imgData;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showLoader(false);
+        showToast('Hasil berhasil diunduh', 'success');
+      }).catch(err => {
+        showLoader(false);
+        showToast('Gagal mengunduh hasil', 'error');
+        console.error('Download canvas error:', err);
+      });
+    })
+    .catch(err => { 
+      showLoader(false); 
+      showToast('Gagal mengunduh hasil', 'error'); 
+      console.error('Download error:', err); 
     });
-    
-    content.innerHTML = `
-      <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #dc2626; padding-bottom:20px;">
-        <h1 style="color:#dc2626; margin-bottom:10px;">HASIL UJIAN PER MAPEL</h1>
-        <h2 style="color:#0f172a; margin-top:0;">${mapelData.Mata_Pelajaran}</h2>
-        <div style="font-size:14px; color:#64748b; margin-top:10px;">
-          Format: NIS_Username • AgendaKey • MapelKey • Jwb1-Jwb${mapelData.Jumlah_Soal}
-        </div>
-      </div>
-      
-      <div style="margin-bottom:30px;">
-        <h3 style="color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">INFORMASI DATA BASE</h3>
-        <table style="width:100%; border-collapse:collapse; font-size:14px;">
-          <tr><td style="padding:8px; width:200px; color:#64748b;"><strong>NIS_Username:</strong></td><td style="padding:8px;">${mapelData.NIS_Username}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>AgendaKey:</strong></td><td style="padding:8px;">${mapelData.AgendaKey}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>MapelKey:</strong></td><td style="padding:8px;">${mapelData.MapelKey}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Mata Pelajaran:</strong></td><td style="padding:8px;">${mapelData.Mata_Pelajaran}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Jumlah Soal:</strong></td><td style="padding:8px;">${mapelData.Jumlah_Soal || jawabanList.length}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Dijawab:</strong></td><td style="padding:8px;">${mapelData.Jumlah_Dijawab || 0}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Kosong:</strong></td><td style="padding:8px;">${mapelData.Jumlah_Kosong || 0}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Persentase:</strong></td><td style="padding:8px;">${mapelData.Persentase || 0}%</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Waktu Pengerjaan:</strong></td><td style="padding:8px;">${mapelData.Waktu_Pengerjaan || 'Tidak tercatat'}</td></tr>
-          <tr><td style="padding:8px; color:#64748b;"><strong>Tanggal Download:</strong></td><td style="padding:8px;">${new Date().toLocaleDateString('id-ID', { 
-            day: '2-digit', 
-            month: 'long', 
-            year: 'numeric',
-            hour: '2-digit', 
-            minute: '2-digit'
-          })}</td></tr>
-        </table>
-      </div>
-      
-      <h3 style="color:#0f172a; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-top:40px;">DAFTAR JAWABAN (Jwb1-Jwb${mapelData.Jumlah_Soal})</h3>
-      ${soalHTML}
-      
-      <div style="margin-top:50px; padding-top:20px; border-top:1px solid #ddd; text-align:center; color:#64748b; font-size:12px;">
-        <p>Dokumen ini dihasilkan secara otomatis oleh Sistem CBT Ujian Online</p>
-        <p>Format Database: NIS_Username • AgendaKey • MapelKey • Jwb1-JwbN</p>
-        <p>${new Date().toLocaleDateString('id-ID', { 
-          day: 'numeric', 
-          month: 'long', 
-          year: 'numeric', 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })}</p>
-      </div>
-    `;
-    
-    html2canvas(content, { 
-      scale: 2, 
-      useCORS: true, 
-      logging: false, 
-      backgroundColor: '#ffffff' 
-    }).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      const fileName = `Hasil_${mapelData.Mata_Pelajaran.replace(/\s+/g, '_')}_${user.NIS_Username}_${new Date().getTime()}.png`;
-      
-      link.download = fileName;
-      link.href = imgData;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showLoader(false);
-      showToast('Hasil berhasil diunduh', 'success');
-    }).catch(err => {
-      showLoader(false);
-      showToast('Gagal mengunduh hasil', 'error');
-      console.error('Download canvas error:', err);
-    });
-    
-  } catch (err) { 
-    showLoader(false); 
-    showToast('Gagal mengunduh hasil', 'error'); 
-    console.error('Download error:', err); 
-  }
 }
 
 /* GLOBAL FUNCTION EXPORTS */
@@ -3973,6 +4184,7 @@ window.saveMatchAnswer = saveMatchAnswer;
 window.finishCheck = finishCheck;
 window.resumeFromViolation = resumeFromViolation;
 window.viewHistory = viewHistory;
+window.viewDetailJawaban = viewDetailJawabanPerMapel;
 window.viewDetailJawabanPerMapel = viewDetailJawabanPerMapel;
 window.closeDetailJawaban = closeDetailJawaban;
 window.downloadHasilUjian = downloadHasilUjian;
@@ -3999,5 +4211,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
   </script>
+  
+  <!-- Modal Zoom akan dibuat secara dinamis oleh JavaScript -->
+  <div id="modal-zoom-container" style="display:none;">
+    <!-- Modal zoom akan ditambahkan di sini oleh JavaScript -->
+  </div>
+  
 </body>
 </html>
