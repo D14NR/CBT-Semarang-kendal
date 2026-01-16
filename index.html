@@ -1855,50 +1855,9 @@
   </div>
 
   <script>
-/* SUPABASE CONFIG */
-const SUPABASE_URL = 'https://ffitekntuuratjfyccwd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmaXRla250dXVyYXRqZnljY3dkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1MDc1NDcsImV4cCI6MjA4NDA4MzU0N30.ykCZRCV-FceQmFY6PicL6M8oVDw4rFglkRq-uuzJBh8';
-
-// Initialize Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/* STATE */
-let user = null;
-let agenda = null;
-let mapel = null;
-let questions = [];
-let qIdx = 0;
-let answers = {};
-let ragu = {};
-let timerInt = null;
-let endTime = 0;
-let matchSelection = null;
-let matchPairs = {};
-let violationTimer = null;
-let cheatCount = 30;
-let pendingMapelId = null;
-let agendasLoaded = false;
-
-// Zoom state
-let zoomedImg = null;
-let currentZoom = 1;
-const MAX_ZOOM = 3;
-const MIN_ZOOM = 0.5;
-const ZOOM_STEP = 0.25;
-
-/* HELPERS */
-function showLoader(show, text = 'Memuat...') { 
-  const loader = document.getElementById('overlay-loader');
-  const textEl = document.getElementById('loader-text');
-  if (loader && textEl) {
-    textEl.innerText = text;
-    if (show) {
-      loader.classList.remove('hidden');
-    } else {
-      loader.classList.add('hidden');
-    }
-  }
-}
+VM113:7 Koneksi error: ReferenceError: supabase is not defined
+    at <anonymous>:4:29
+    at <anonymous>:9:3
 
 function showToast(msg, type = 'success') { 
   const container = document.getElementById('toast-container');
